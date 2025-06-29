@@ -1,4 +1,5 @@
-
+import Image from "next/image";
+import ImageU from "./ImageU";
 import Link from "next/link";
 
 const menuList = [
@@ -66,22 +67,27 @@ const menuList = [
 
 const LeftBar = () => {
   return (
-    <div className="h-screen sticky top-0 flex flex-col justify-between py-4">
+    <div className="h-screen sticky top-0 flex flex-col justify-between pt-2 py-3">
       {/* LOGO MENU BUTTON */}
-      <div className="flex flex-col gap-4 text-lg items-center xxl:items-start">
+      <div className="flex flex-col gap-2 text-lg items-center xxl:items-start">
         {/* LOGO */}
-        <Link href="/" className="p-2 rounded-xl hover:bg-[#181818]">
-          <img src="/icons/logo.svg" alt="logo" width={24} height={24} />
+        <Link href="/" className="p-2 rounded-full hover:bg-[#181818] ">
+          <Image src="icons/logo.svg" alt="logo" width={24} height={24} />
         </Link>
         {/* MENU LIST */}
-        <div className="flex flex-col gap-[0.25] mb-3">
+        <div className="flex flex-col gap-[0.3rem]">
           {menuList.map((item) => (
             <Link
               href={item.link}
               className="p-2 rounded-xl hover:bg-[#181818] flex items-center gap-4"
               key={item.id}
             >
-              <img src={`/icons/${item.icon}`} alt={item.name} width={24} height={24} />
+              <Image
+                src={`icons/${item.icon}`}
+                alt={item.name}
+                width={24}
+                height={24}
+              />
               <span className="hidden xxl:inline">{item.name}</span>
             </Link>
           ))}
@@ -95,14 +101,14 @@ const LeftBar = () => {
         </Link>
       </div>
       {/* USER */}
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 relative rounded-full overflow-hidden">
-            <img src="../public/general/avatar.jpg" alt="img" width={100} height={100} />
+            <ImageU src="/general/avatar.png" alt="user dev" w={100} h={100} tr={true} />
           </div>
           <div className="hidden xxl:flex flex-col">
-            <span className="font-bold">User namae</span>
-            <span className="text-sm text-textGray">@mail.com</span>
+            <span className="font-bold">user Dev</span>
+            <span className="text-sm text-textGray">@user</span>
           </div>
         </div>
         <div className="hidden xxl:block cursor-pointer font-bold">...</div>

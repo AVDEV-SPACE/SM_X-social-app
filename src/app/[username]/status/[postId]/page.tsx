@@ -1,5 +1,5 @@
 import Comments from "@/components/Comments";
-import Image from "@/components/Image";
+import Image from "@/components/ImageU";
 import Post from "@/components/Post";
 import Link from "next/link";
 

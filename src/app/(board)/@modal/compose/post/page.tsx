@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "@/components/ImageU";
+import Image from "@/components/Image";
 import { useRouter } from "next/navigation";
 
 const PostModal = () => {
@@ -25,7 +25,7 @@ const PostModal = () => {
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
             <Image
               path="general/avatar.png"
-              alt="User"
+              alt="Lama Dev"
               w={100}
               h={100}
               tr={true}

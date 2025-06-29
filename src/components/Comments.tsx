@@ -1,4 +1,4 @@
-import Image from "./Image"
+import Image from "./ImageU"
 import Post from "./Post"
 
 const Comments = () => {

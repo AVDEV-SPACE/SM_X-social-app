@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Image from "./Image";
+import Image from "./ImageU";
 
 const Recommendations = () => {
   return (
     <div className="p-2 rounded-2xl border-[1px] border-borderGray flex flex-col gap-4">
       {/* USER CARD */}
-      <div className='flex items-center justify-between hover:bg-[] rounded-lg p-2'>
+      <div className='flex items-center justify-between rounded-xl hover:bg-[#181818] p-2'>
         {/* IMAGE AND USER INFO */}
         <div className='flex items-center gap-2'>
           <div className='relative rounded-full overflow-hidden w-10 h-10'>
@@ -19,7 +19,7 @@ const Recommendations = () => {
         {/* BUTTON */}
         <button className="py-1 px-4 font-semibold bg-white text-black rounded-full">Follow</button>
       </div>
-      <div className='flex items-center justify-between hover:bg-[] rounded-lg p-2'>
+      <div className='flex items-center justify-between rounded-xl hover:bg-[#181818] p-2'>
         {/* IMAGE AND USER INFO */}
         <div className='flex items-center gap-2'>
           <div className='relative rounded-full overflow-hidden w-10 h-10'>
@@ -33,7 +33,7 @@ const Recommendations = () => {
         {/* BUTTON */}
         <button className="py-1 px-4 font-semibold bg-white text-black rounded-full">Follow</button>
       </div>
-      <div className='flex items-center justify-between hover:bg-[] rounded-lg p-2'>
+      <div className='flex items-center justify-between rounded-xl hover:bg-[#181818] p-2'>
         {/* IMAGE AND USER INFO */}
         <div className='flex items-center gap-2'>
           <div className='relative rounded-full overflow-hidden w-10 h-10'>
@@ -47,7 +47,8 @@ const Recommendations = () => {
         {/* BUTTON */}
         <button className="py-1 px-4 font-semibold bg-white text-black rounded-full">Follow</button>
       </div>
-      <Link href="/" className="text-iconBlue">
+
+      <Link href="/" className="text-iconBlue p-2">
         Show More
       </Link>
     </div>

@@ -1,16 +1,10 @@
 import Feed from "@/components/Feed";
 import Share from "@/components/Share";
-import prisma from "@/prisma";
 import Link from "next/link";
 
-const Homepage = async () => {
-  
-  const usersP = await prisma.user.findMany();
-  console.log(usersP);
+const Homepage = () => {
 
-
-  return (
-    <div className="">
+  return <div className="">
       <div className="px-4 pt-4 flex justify-between text-textGray font-bold border-b-[1px] border-borderGray">
         <div className="span border border-r-borderGray w-1/2 flex justify-center items-center">
           <Link className="w-1/2 pb-3" href="/">
@@ -23,10 +17,9 @@ const Homepage = async () => {
           </Link>
         </div>
       </div>
-      <Share />
-      <Feed />
-    </div>
-  );
+    <Share/>
+    <Feed/>
+  </div>;
 };
 
 export default Homepage;
