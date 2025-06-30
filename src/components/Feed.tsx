@@ -1,13 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
-import Post from "./Post"
-import { prisma } from "@/prisma";
+import Post from "./Post";
+import prisma from "@/prisma";
 
 const Feed = async ({ userProfileId }: { userProfileId?: string }) => {
   const { userId } = await auth();
 
-  const posts = await prisma.post.findMany();
+  if (!userId) return null;
 
-    const whereCondition = userProfileId
+  const whereCondition = userProfileId
     ? { parentPostId: null, userId: userProfileId }
     : {
         parentPostId: null,
@@ -21,16 +21,16 @@ const Feed = async ({ userProfileId }: { userProfileId?: string }) => {
               })
             ).map((follow) => follow.followingId),
           ],
-        },
+        }, // Adaugă virgulă aici
       };
 
   const posts = await prisma.post.findMany({
     where: whereCondition,
     include: {
       rePost: {
-        include: postIncludeQuery,
+        include: postIncludeQuery, // Asumăm că e definit
       },
-      ...postIncludeQuery,
+      ...postIncludeQuery, // Asumăm că e definit
     },
     take: 3,
     skip: 0,
@@ -45,7 +45,7 @@ const Feed = async ({ userProfileId }: { userProfileId?: string }) => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default Feed
+export default Feed;
