@@ -26,9 +26,12 @@ const FollowButton = ({
   if (!user) return;
 
   const followAction = async () => {
+    
     switchOptimisticFollow("");
     await followUser(userId);
+    
     setState((prev) => !prev);
+    
     // SEND NOTIFICATION
     socket.emit("sendNotification", {
       receiverUsername: username,

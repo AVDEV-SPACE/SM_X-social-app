@@ -1,49 +1,28 @@
-import LeftBar from "@/components/LeftBar";
-import "./globals.css";
-import RightBar from "@/components/RightBar";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
-
-
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'X Clone',
-  description: 'Next.js social media application project',
-}
+import { ClerkProvider } from '@clerk/nextjs';
+import QueryProvider from '@/providers/QueryProvider';
+import AppShell from '@/components/AppShell';
+import './globals.css';
 
 export default function RootLayout({
   children,
-  modal
-}: Readonly<{
+  modal,
+}: {
   children: React.ReactNode;
   modal: React.ReactNode;
-}>) {
+}) {
   return (
-      <ClerkProvider>
-        <html lang="en">
-          <body>
-            <div className="max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl xxl:max-w-screen-xxl mx-auto flex justify-between">
-              <div className="px-2 xsm:px-4 xxl:px-8 ">
-                <LeftBar />
-              </div>
-              <div className="flex-1 lg:min-w-[600px] border-x-[1px] border-borderGray ">
-                {children}
-                {modal}
-              </div>
-              <div className="hidden lg:flex ml-4 md:ml-8 flex-1 ">
-                <RightBar />
-              </div>
-            </div>
-          </body>
-        </html>        
-      </ClerkProvider>
-
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+    >
+      <html lang="en">
+        <body className="bg-black text-white min-h-screen">
+          <QueryProvider>
+            <AppShell modal={modal}>{children}</AppShell>
+          </QueryProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

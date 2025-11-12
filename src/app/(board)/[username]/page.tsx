@@ -1,7 +1,7 @@
 import Feed from "@/components/Feed";
 import FollowButton from "@/components/FollowButton";
-import Image from "@/components/Image";
-import { prisma } from "@/prisma";
+import ImageU from "@/components/ImageU";
+import  prisma  from "@/prisma";
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -31,7 +31,7 @@ const UserPage = async ({
       {/* PROFILE TITLE */}
       <div className="flex items-center gap-8 sticky top-0 backdrop-blur-md p-4 z-10 bg-[#00000084]">
         <Link href="/">
-          <Image path="icons/back.svg" alt="back" w={24} h={24} />
+          <ImageU path="icons/back.svg" alt="back" w={24} h={24} />
         </Link>
         <h1 className="font-bold text-lg">{user.displayName}</h1>
       </div>
@@ -41,7 +41,7 @@ const UserPage = async ({
         <div className="relative w-full">
           {/* COVER */}
           <div className="w-full aspect-[3/1] relative">
-            <Image
+            <ImageU
               path={user.cover || "general/noCover.png"}
               alt=""
               w={600}
@@ -51,7 +51,7 @@ const UserPage = async ({
           </div>
           {/* AVATAR */}
           <div className="w-1/5 aspect-square rounded-full overflow-hidden border-4 border-black bg-gray-300 absolute left-4 -translate-y-1/2">
-            <Image
+            <ImageU
               path={user.img || "general/noAvatar.png"}
               alt=""
               w={100}
@@ -62,13 +62,13 @@ const UserPage = async ({
         </div>
         <div className="flex w-full items-center justify-end gap-2 p-2">
           <div className="w-9 h-9 flex items-center justify-center rounded-full border-[1px] border-gray-500 cursor-pointer">
-            <Image path="icons/more.svg" alt="more" w={20} h={20} />
+            <ImageU path="icons/more.svg" alt="more" w={20} h={20} />
           </div>
           <div className="w-9 h-9 flex items-center justify-center rounded-full border-[1px] border-gray-500 cursor-pointer">
-            <Image path="icons/explore.svg" alt="more" w={20} h={20} />
+            <ImageU path="icons/explore.svg" alt="more" w={20} h={20} />
           </div>
           <div className="w-9 h-9 flex items-center justify-center rounded-full border-[1px] border-gray-500 cursor-pointer">
-            <Image path="icons/message.svg" alt="more" w={20} h={20} />
+            <ImageU path="icons/message.svg" alt="more" w={20} h={20} />
           </div>
           {userId && (
             <FollowButton
@@ -90,7 +90,7 @@ const UserPage = async ({
           <div className="flex gap-4 text-textGray text-[15px]">
             {user.location && (
               <div className="flex items-center gap-2">
-                <Image
+                <ImageU
                   path="icons/userLocation.svg"
                   alt="location"
                   w={20}
@@ -100,7 +100,7 @@ const UserPage = async ({
               </div>
             )}
             <div className="flex items-center gap-2">
-              <Image path="icons/date.svg" alt="date" w={20} h={20} />
+              <ImageU path="icons/date.svg" alt="date" w={20} h={20} />
               <span>
                 Joined{" "}
                 {new Date(user.createdAt.toString()).toLocaleDateString(

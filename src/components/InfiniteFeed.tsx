@@ -4,20 +4,16 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Post from "./Post";
 
-
 const fetchPosts = async (pageParam: number, userProfileId?: string) => {
   const res = await fetch(
-    "http://localhost:3000/api/posts?cursor=" +
-      pageParam +
-      "&user=" +
-      userProfileId
+    `http://localhost:3000/api/posts?cursor=${pageParam}&user=${userProfileId || "undefined"}`
   );
   return res.json();
 };
 
 const InfiniteFeed = ({ userProfileId }: { userProfileId?: string }) => {
   const { data, error, status, hasNextPage, fetchNextPage } = useInfiniteQuery({
-    queryKey: ["posts"],
+    queryKey: ["posts", userProfileId],
     queryFn: ({ pageParam = 2 }) => fetchPosts(pageParam, userProfileId),
     initialPageParam: 2,
     getNextPageParam: (lastPage, pages) =>
@@ -27,9 +23,7 @@ const InfiniteFeed = ({ userProfileId }: { userProfileId?: string }) => {
   if (error) return "Something went wrong!";
   if (status === "pending") return "Loading...";
 
-  console.log(data);
-
-  const allPosts = data?.pages?.flatMap((page) => page.posts) || [];
+  const allPosts = data?.pages.flatMap((page) => page.posts) || [];
 
   return (
     <InfiniteScroll
@@ -40,7 +34,7 @@ const InfiniteFeed = ({ userProfileId }: { userProfileId?: string }) => {
       endMessage={<h1>All posts loaded!</h1>}
     >
       {allPosts.map((post) => (
-        <Post key={post.id} post={post}/>
+        <Post key={post.id} post={post} />
       ))}
     </InfiniteScroll>
   );

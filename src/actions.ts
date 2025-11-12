@@ -29,6 +29,7 @@ export const followUser = async (targetUserId: string) => {
     });
   }
 };
+
 export const likePost = async (postId: number) => {
   const { userId } = await auth();
 
@@ -51,6 +52,145 @@ export const likePost = async (postId: number) => {
     });
   }
 };
+
+export const addPost = async (
+  prevState: { success: boolean; error: boolean },
+  formData: FormData
+) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    console.log("No userId found");
+    return { success: false, error: true };
+  }
+
+  console.log("Current userId from Clerk:", userId);
+
+  // Verifică dacă utilizatorul există în baza de date
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!existingUser) {
+    console.log("User not found in database, creating...");
+    
+    // Încearcă să creezi utilizatorul în baza de date
+    try {
+      await prisma.user.create({
+        data: {
+          id: userId,
+          username: `user_${userId.slice(-8)}`,
+          email: 'unknown@example.com',
+          displayName: 'User',
+          bio: 'New user',
+          location: '',
+          job: '',
+          website: '',
+          img: null,
+          cover: null,
+        },
+      });
+      console.log("User created successfully");
+    } catch (error) {
+      console.error("Error creating user:", error);
+      return { success: false, error: true };
+    }
+  }
+
+  const desc = formData.get("desc");
+  const file = formData.get("file") as File;
+  const isSensitive = formData.get("isSensitive") as string;
+  const imgType = formData.get("imgType");
+
+  const uploadFile = async (file: File): Promise<UploadResponse> => {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const transformation = `w-600,${
+      imgType === "square" ? "ar-1-1" : imgType === "wide" ? "ar-16-9" : ""
+    }`;
+
+    return new Promise((resolve, reject) => {
+      imagekit.upload(
+        {
+          file: buffer,
+          fileName: file.name,
+          folder: "/posts",
+          ...(file.type.includes("image") && {
+            transformation: {
+              pre: transformation,
+            },
+          }),
+        },
+        function (error, result) {
+          if (error) reject(error);
+          else resolve(result as UploadResponse);
+        }
+      );
+    });
+  };
+
+  const Post = z.object({
+    desc: z.string().max(140),
+    isSensitive: z.boolean().optional(),
+  });
+
+  const validatedFields = Post.safeParse({
+    desc,
+    isSensitive: JSON.parse(isSensitive || "false"),
+  });
+
+  if (!validatedFields.success) {
+    console.log(validatedFields.error.flatten().fieldErrors);
+    return { success: false, error: true };
+  }
+
+  let img = "";
+  let imgHeight = 0;
+  let video = "";
+
+  if (file && file.size > 0) {
+    try {
+      const result: UploadResponse = await uploadFile(file);
+
+      if (result.fileType === "image") {
+        img = result.filePath;
+        imgHeight = result.height || 0;
+      } else {
+        video = result.filePath;
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      return { success: false, error: true };
+    }
+  }
+
+  console.log("Data to be inserted:", {
+    ...validatedFields.data,
+    userId,
+    img,
+    imgHeight,
+    video,
+  });
+
+  try {
+    await prisma.post.create({
+      data: {
+        ...validatedFields.data,
+        userId,
+        img,
+        imgHeight,
+        video,
+      },
+    });
+    revalidatePath(`/`);
+    return { success: true, error: false };
+  } catch (err) {
+    console.error("Error creating post:", err);
+    return { success: false, error: true };
+  }
+};
+
 export const rePost = async (postId: number) => {
   const { userId } = await auth();
 
@@ -139,100 +279,4 @@ export const addComment = async (
   }
 };
 
-export const addPost = async (
-  prevState: { success: boolean; error: boolean },
-  formData: FormData
-) => {
-  const { userId } = await auth();
 
-  if (!userId) return { success: false, error: true };
-
-  const desc = formData.get("desc");
-  const file = formData.get("file") as File;
-  const isSensitive = formData.get("isSensitive") as string;
-  const imgType = formData.get("imgType");
-
-  const uploadFile = async (file: File): Promise<UploadResponse> => {
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const transformation = `w-600,${
-      imgType === "square" ? "ar-1-1" : imgType === "wide" ? "ar-16-9" : ""
-    }`;
-
-    return new Promise((resolve, reject) => {
-      imagekit.upload(
-        {
-          file: buffer,
-          fileName: file.name,
-          folder: "/posts",
-          ...(file.type.includes("image") && {
-            transformation: {
-              pre: transformation,
-            },
-          }),
-        },
-        function (error, result) {
-          if (error) reject(error);
-          else resolve(result as UploadResponse);
-        }
-      );
-    });
-  };
-
-  const Post = z.object({
-    desc: z.string().max(140),
-    isSensitive: z.boolean().optional(),
-  });
-
-  const validatedFields = Post.safeParse({
-    desc,
-    isSensitive: JSON.parse(isSensitive),
-  });
-
-  if (!validatedFields.success) {
-    console.log(validatedFields.error.flatten().fieldErrors);
-    return { success: false, error: true };
-  }
-
-  let img = "";
-  let imgHeight = 0;
-  let video = "";
-
-  if (file.size) {
-    const result: UploadResponse = await uploadFile(file);
-
-    if (result.fileType === "image") {
-      img = result.filePath;
-      imgHeight = result.height;
-    } else {
-      video = result.filePath;
-    }
-  }
-
-  console.log({
-    ...validatedFields.data,
-    userId,
-    img,
-    imgHeight,
-    video,
-  });
-
-  try {
-    await prisma.post.create({
-      data: {
-        ...validatedFields.data,
-        userId,
-        img,
-        imgHeight,
-        video,
-      },
-    });
-    revalidatePath(`/`);
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-  return { success: false, error: true };
-};

@@ -1,7 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { prisma } from "@/prisma";
+import prisma from "@/prisma";
 
 export async function POST(req: Request) {
   const SIGNING_SECRET = process.env.SIGNING_SECRET;
@@ -48,27 +48,62 @@ export async function POST(req: Request) {
     });
   }
 
-  // Do something with payload
-  // For this guide, log payload to console
   const { id } = evt.data;
   const eventType = evt.type;
   console.log(`Received webhook with ID ${id} and event type of ${eventType}`);
-  console.log("Webhook payload:", body);
 
   if (eventType === "user.created") {
     try {
+      const userData = evt.data;
+      
       await prisma.user.create({
         data: {
-          id: evt.data.id,
-          username: JSON.parse(body).data.username,
-          email: JSON.parse(body).data.email_addresses[0].email_address,
-          img: JSON.parse(body).image_url || "" 
+          id: userData.id,
+          username: userData.username || `user_${userData.id.slice(-8)}`,
+          email: userData.email_addresses?.[0]?.email_address || '',
+          displayName: userData.first_name && userData.last_name 
+            ? `${userData.first_name} ${userData.last_name}`
+            : userData.username || 'User',
+          bio: "New user",
+          location: "",
+          job: "",
+          website: "",
+          img: userData.image_url || null,
+          cover: null,
         },
       });
+      
+      console.log("User created successfully:", userData.id);
       return new Response("User created", { status: 200 });
     } catch (err) {
-      console.log(err);
+      console.error("Error creating user:", err);
       return new Response("Error: Failed to create a user!", {
+        status: 500,
+      });
+    }
+  }
+
+  if (eventType === "user.updated") {
+    try {
+      const userData = evt.data;
+      
+      await prisma.user.update({
+        where: { id: userData.id },
+        data: {
+          username: userData.username || `user_${userData.id.slice(-8)}`,
+          email: userData.email_addresses?.[0]?.email_address || '',
+          displayName: userData.first_name && userData.last_name 
+            ? `${userData.first_name} ${userData.last_name}`
+            : userData.username || 'User',
+          img: userData.image_url || null,
+        },
+      });
+      
+      console.log("User updated successfully:", userData.id);
+      return new Response("User updated", { status: 200 });
+    } catch (err) {
+      console.error("Error updating user:", err);
+      return new Response("Error: Failed to update user!", {
         status: 500,
       });
     }
@@ -76,11 +111,15 @@ export async function POST(req: Request) {
 
   if (eventType === "user.deleted") {
     try {
-      await prisma.user.delete({ where: { id: evt.data.id } });
+      await prisma.user.delete({ 
+        where: { id: evt.data.id } 
+      });
+      
+      console.log("User deleted successfully:", evt.data.id);
       return new Response("User deleted", { status: 200 });
     } catch (err) {
-      console.log(err);
-      return new Response("Error: Failed to create a user!", {
+      console.error("Error deleting user:", err);
+      return new Response("Error: Failed to delete user!", {
         status: 500,
       });
     }

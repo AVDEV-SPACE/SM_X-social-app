@@ -1,35 +1,50 @@
-import  prisma  from "@/prisma";
+import prisma from "@/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-
   const userProfileId = searchParams.get("user");
   const page = searchParams.get("cursor");
-  const LIMIT = 3;
+  const LIMIT = 30;
 
   const { userId } = await auth();
 
-  if (!userId) return;
+  if (!userId) return Response.json({ posts: [], hasMore: false });
 
-  const whereCondition =
-    userProfileId !== "undefined"
-      ? { parentPostId: null, userId: userProfileId as string }
-      : {
-          parentPostId: null,
-          userId: {
-            in: [
-              userId,
-              ...(
-                await prisma.follow.findMany({
-                  where: { followerId: userId },
-                  select: { followingId: true },
-                })
-              ).map((follow) => follow.followingId),
-            ],
-          },
-        };
+  let whereCondition;
+  if (userProfileId !== "undefined") {
+    whereCondition = { parentPostId: null, userId: userProfileId as string };
+  } else {
+    const following = await prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const followingIds = following.map((follow) => follow.followingId);
+
+    if (followingIds.length > 0) {
+      // Mai întâi postările userilor urmăriți + ale utilizatorului
+      const followedPosts = await prisma.post.findMany({
+        where: { parentPostId: null, userId: { in: [userId, ...followingIds] } },
+        orderBy: { createdAt: "desc" },
+        take: LIMIT,
+        skip: (Number(page) - 1) * LIMIT,
+      });
+      // Apoi restul postărilor
+      const otherPosts = await prisma.post.findMany({
+        where: { parentPostId: null, userId: { notIn: [userId, ...followingIds] } },
+        orderBy: { createdAt: "desc" },
+        take: LIMIT,
+        skip: (Number(page) - 1) * LIMIT,
+      });
+      const posts = [...followedPosts, ...otherPosts];
+      const totalPosts = await prisma.post.count({ where: { parentPostId: null } });
+      const hasMore = Number(page) * LIMIT < totalPosts;
+      return Response.json({ posts, hasMore });
+    } else {
+      whereCondition = { parentPostId: null }; // Toate postările
+    }
+  }
 
   const postIncludeQuery = {
     user: { select: { displayName: true, username: true, img: true } },
@@ -42,21 +57,16 @@ export async function GET(request: NextRequest) {
   const posts = await prisma.post.findMany({
     where: whereCondition,
     include: {
-      rePost: {
-        include: postIncludeQuery,
-      },
+      rePost: { include: postIncludeQuery },
       ...postIncludeQuery,
     },
     take: LIMIT,
     skip: (Number(page) - 1) * LIMIT,
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
   });
 
   const totalPosts = await prisma.post.count({ where: whereCondition });
-
   const hasMore = Number(page) * LIMIT < totalPosts;
-
-  // await new Promise((resolve) => setTimeout(resolve, 3000));
 
   return Response.json({ posts, hasMore });
 }
